@@ -418,6 +418,117 @@ spec:
                             fixedIp:
                               description: A fixed IPv4 address for the NIC.
                               type: string
+                            ports:
+                              items:
+                                properties:
+                                  adminStateUp:
+                                    type: boolean
+                                  allowedAddressPairs:
+                                    items:
+                                      description: AddressPair contains the IP Address
+                                        and the MAC address.
+                                      properties:
+                                        ipAddress:
+                                          type: string
+                                        macAddress:
+                                          type: string
+                                      type: object
+                                    type: array
+                                  description:
+                                    type: string
+                                  fixedIps:
+                                    items:
+                                      description: IP is a sub-struct that represents
+                                        an individual IP.
+                                      properties:
+                                        ipAddress:
+                                          type: string
+                                        subnet:
+                                          properties:
+                                            filter:
+                                              description: Filters for optional network
+                                                query
+                                              properties:
+                                                cidr:
+                                                  type: string
+                                                description:
+                                                  type: string
+                                                enableDhcp:
+                                                  type: boolean
+                                                gateway_ip:
+                                                  type: string
+                                                id:
+                                                  type: string
+                                                ipVersion:
+                                                  type: integer
+                                                ipv6AddressMode:
+                                                  type: string
+                                                ipv6RaMode:
+                                                  type: string
+                                                limit:
+                                                  type: integer
+                                                marker:
+                                                  type: string
+                                                name:
+                                                  type: string
+                                                networkId:
+                                                  type: string
+                                                notTags:
+                                                  type: string
+                                                notTagsAny:
+                                                  type: string
+                                                projectId:
+                                                  type: string
+                                                sortDir:
+                                                  type: string
+                                                sortKey:
+                                                  type: string
+                                                subnetpoolId:
+                                                  type: string
+                                                tags:
+                                                  type: string
+                                                tagsAny:
+                                                  type: string
+                                                tenantId:
+                                                  type: string
+                                              type: object
+                                            uuid:
+                                              description: The UUID of the network.
+                                                Required if you omit the port attribute.
+                                              type: string
+                                          type: object
+                                      required:
+                                      - subnet
+                                      type: object
+                                    type: array
+                                  hostId:
+                                    description: The ID of the host where the port
+                                      is allocated
+                                    type: string
+                                  macAddress:
+                                    type: string
+                                  portSecurity:
+                                    description: enable or disable security on a given
+                                      port incompatible with securityGroups and allowedAddressPairs
+                                    type: boolean
+                                  projectId:
+                                    type: string
+                                  securityGroups:
+                                    items:
+                                      type: string
+                                    type: array
+                                  tags:
+                                    items:
+                                      type: string
+                                    type: array
+                                  tenantId:
+                                    type: string
+                                  vnicType:
+                                    description: The virtual network interface card
+                                      (vNIC) type that is bound to the neutron port.
+                                    type: string
+                                type: object
+                              type: array
                             subnets:
                               description: Subnet within a network to use
                               items:

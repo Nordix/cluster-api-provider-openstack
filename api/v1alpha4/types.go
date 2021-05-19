@@ -60,7 +60,8 @@ type NetworkParam struct {
 	// A fixed IPv4 address for the NIC.
 	FixedIP string `json:"fixedIp,omitempty"`
 	// Filters for optional network query
-	Filter Filter `json:"filter,omitempty"`
+	Filter Filter      `json:"filter,omitempty"`
+	Ports  []PortParam `json:"ports,omitempty"`
 	// Subnet within a network to use
 	Subnets []SubnetParam `json:"subnets,omitempty"`
 }
@@ -145,7 +146,7 @@ type RootVolume struct {
 	Size       int    `json:"diskSize,omitempty"`
 }
 
-// Network represents basic information about the associated OpenStach Neutron Network.
+// Network represents basic information about the associated OpenStack Neutron Network.
 type Network struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
@@ -153,12 +154,47 @@ type Network struct {
 	//+optional
 	Tags []string `json:"tags,omitempty"`
 
-	Subnet *Subnet `json:"subnet,omitempty"`
-	Router *Router `json:"router,omitempty"`
+	PortParam  *PortParam `json:"port,omitempty"`
+	Subnet *Subnet      `json:"subnet,omitempty"`
+	Router *Router      `json:"router,omitempty"`
 
 	// Be careful when using APIServerLoadBalancer, because this field is optional and therefore not
 	// set in all cases
 	APIServerLoadBalancer *LoadBalancer `json:"apiServerLoadBalancer,omitempty"`
+}
+
+type PortParam struct {
+	Description         string        `json:"description,omitempty"`
+	AdminStateUp        *bool         `json:"adminStateUp,omitempty"`
+	MACAddress          string        `json:"macAddress,omitempty"`
+	FixedIPs            []IP          `json:"fixedIps,omitempty"`
+	TenantID            string        `json:"tenantId,omitempty"`
+	ProjectID           string        `json:"projectId,omitempty"`
+	SecurityGroups      *[]string     `json:"securityGroups,omitempty"`
+	AllowedAddressPairs []AddressPair `json:"allowedAddressPairs,omitempty"`
+	Tags                []string      `json:"tags,omitempty"`
+
+	// The ID of the host where the port is allocated
+	HostID string `json:"hostId,omitempty"`
+
+	// The virtual network interface card (vNIC) type that is bound to the neutron port.
+	VNICType string `json:"vnicType,omitempty"`
+
+	// enable or disable security on a given port
+	// incompatible with securityGroups and allowedAddressPairs
+	PortSecurity *bool `json:"portSecurity,omitempty"`
+}
+
+// IP is a sub-struct that represents an individual IP.
+type IP struct {
+	Subnet SubnetParam `json:"subnet"`
+	IPAddress string `json:"ipAddress,omitempty"`
+}
+
+// AddressPair contains the IP Address and the MAC address.
+type AddressPair struct {
+	IPAddress  string `json:"ipAddress,omitempty"`
+	MACAddress string `json:"macAddress,omitempty"`
 }
 
 // Subnet represents basic information about the associated OpenStack Neutron Subnet.

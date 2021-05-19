@@ -19,6 +19,7 @@ package compute
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/portsbinding"
 	"net"
 	"os"
 	"strconv"
@@ -137,6 +138,7 @@ func (s *Service) CreateInstance(openStackCluster *infrav1.OpenStackCluster, mac
 			Subnet: &infrav1.Subnet{
 				ID: openStackCluster.Status.Network.Subnet.ID,
 			},
+			PortParam: &infrav1.PortParam{},
 		}}
 	}
 	input.Networks = &nets
@@ -152,12 +154,13 @@ func createInstance(is *Service, eventObject runtime.Object, clusterName string,
 	accessIPv4 := ""
 	portList := []servers.Network{}
 
-	for _, network := range *i.Networks {
+	for netIndex, network := range *i.Networks {
 		if network.ID == "" {
 			return nil, fmt.Errorf("no network was found or provided. Please check your machine configuration and try again")
 		}
 
-		port, err := getOrCreatePort(is, eventObject, clusterName, i.Name, network, i.SecurityGroups)
+		portName := fmt.Sprintf("%s-%d", i.Name, netIndex)
+		port, err := getOrCreatePort(is, eventObject, clusterName, network, portName, i.SecurityGroups)
 		if err != nil {
 			return nil, err
 		}
@@ -349,7 +352,8 @@ func getServerNetworks(networkClient *gophercloud.ServiceClient, networkParams [
 		for _, netID := range ids {
 			if networkParam.Subnets == nil {
 				nets = append(nets, infrav1.Network{
-					ID: netID,
+					ID:        netID,
+					PortParam: &infrav1.PortParam{},
 				})
 				continue
 			}
@@ -368,6 +372,16 @@ func getServerNetworks(networkClient *gophercloud.ServiceClient, networkParams [
 						Subnet: &infrav1.Subnet{
 							ID: subnetByFilter.ID,
 						},
+						PortParam: &infrav1.PortParam{},
+					})
+				}
+			}
+
+			if networkParam.Ports != nil {
+				for _, port := range networkParam.Ports {
+					nets = append(nets, infrav1.Network{
+						ID:        netID,
+						PortParam: &port,
 					})
 				}
 			}
@@ -376,7 +390,7 @@ func getServerNetworks(networkClient *gophercloud.ServiceClient, networkParams [
 	return nets, nil
 }
 
-func getOrCreatePort(is *Service, eventObject runtime.Object, clusterName string, portName string, net infrav1.Network, securityGroups *[]string) (*ports.Port, error) {
+func getOrCreatePort(is *Service, eventObject runtime.Object, clusterName string, net infrav1.Network, portName string, instanceSecurityGroups *[]string) (*ports.Port, error) {
 	allPages, err := ports.List(is.networkClient, ports.ListOpts{
 		Name:      portName,
 		NetworkID: net.ID,
@@ -393,16 +407,38 @@ func getOrCreatePort(is *Service, eventObject runtime.Object, clusterName string
 		return &portList[0], nil
 	}
 
-	portCreateOpts := ports.CreateOpts{
+	if net.PortParam.Description == "" {
+		net.PortParam.Description = fmt.Sprintf("Created by cluster-api-provider-openstack cluster %s", clusterName)
+	}
+
+	// inherit instance security groups if they aren't set on the port
+	if net.PortParam.SecurityGroups == nil {
+		net.PortParam.SecurityGroups = instanceSecurityGroups
+	}
+
+	createOpts := ports.CreateOpts{
 		Name:           portName,
 		NetworkID:      net.ID,
-		SecurityGroups: securityGroups,
-		Description:    fmt.Sprintf("Created by cluster-api-provider-openstack cluster %s", clusterName),
+		Description:    net.PortParam.Description,
+		AdminStateUp:   net.PortParam.AdminStateUp,
+		MACAddress:     net.PortParam.MACAddress,
+		TenantID:       net.PortParam.TenantID,
+		ProjectID:      net.PortParam.ProjectID,
+		SecurityGroups: net.PortParam.SecurityGroups,
+		//AllowedAddressPairs: portParam.AllowedAddressPairs,
 	}
+
 	if net.Subnet.ID != "" {
-		portCreateOpts.FixedIPs = []ports.IP{{SubnetID: net.Subnet.ID}}
+		createOpts.FixedIPs = []ports.IP{{SubnetID: net.Subnet.ID}}
 	}
-	port, err := ports.Create(is.networkClient, portCreateOpts).Extract()
+
+	port, err := ports.Create(is.networkClient, portsbinding.CreateOptsExt{
+		CreateOptsBuilder: createOpts,
+		HostID:            net.PortParam.HostID,
+		VNICType:          net.PortParam.VNICType,
+		Profile:           nil,
+	}).Extract()
+
 	if err != nil {
 		record.Warnf(eventObject, "FailedCreatePort", "Failed to create port %s: %v", portName, err)
 		return nil, err
