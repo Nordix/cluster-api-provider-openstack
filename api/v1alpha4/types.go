@@ -136,6 +136,10 @@ type PortOpts struct {
 
 	// The virtual network interface card (vNIC) type that is bound to the neutron port.
 	VNICType string `json:"vnicType,omitempty"`
+
+	// ValueSpecs. Allows you to add additional information in key/value format to a port.
+	// The information is added to the tags field of the port.
+	ValueSpecs map[string]string `json:"valueSpecs,omitempty"`
 }
 
 type FixedIP struct {

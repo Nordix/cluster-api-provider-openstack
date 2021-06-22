@@ -65,6 +65,29 @@ const (
 	TimeoutInstanceDelete = 5 * time.Minute
 )
 
+// Add ValueSpecs attribute in addition to CreateOptsExt
+type PortCreateOptsWithValueSpec struct {
+	portsbinding.CreateOptsExt
+	ValueSpecs map[string]string `json:"value_specs,omitempty"`
+}
+
+// convert PortCreateOptsWithValueSpec struct to a map.
+func (opts PortCreateOptsWithValueSpec) ToPortCreateMap() (map[string]interface{}, error) {
+	base, err := opts.CreateOptsBuilder.ToPortCreateMap()
+	if err != nil {
+		return nil, err
+	}
+
+	port := base["port"].(map[string]interface{})
+
+	if opts.ValueSpecs != nil {
+		// value_specs may not be recognized by Openstack api
+		// https://docs.openstack.org/api-ref/network/v2/index.html?expanded=create-port-detail,update-port-detail,show-port-details-detail,list-trunks-detail
+		port["value_specs"] = opts.ValueSpecs
+	}
+	return base, nil
+}
+
 func (s *Service) CreateInstance(openStackCluster *infrav1.OpenStackCluster, machine *clusterv1.Machine, openStackMachine *infrav1.OpenStackMachine, clusterName string, userData string) (instance *infrav1.Instance, err error) {
 	if openStackMachine == nil {
 		return nil, fmt.Errorf("create Options need be specified to create instace")
@@ -493,18 +516,34 @@ func (s *Service) getOrCreatePort(eventObject runtime.Object, clusterName string
 	}
 	mc := metrics.NewMetricPrometheusContext("port", "create")
 
-	port, err := ports.Create(s.networkClient, portsbinding.CreateOptsExt{
-		CreateOptsBuilder: createOpts,
-		HostID:            portOpts.HostID,
-		VNICType:          portOpts.VNICType,
-		Profile:           nil,
-	}).Extract()
+	createPortWithValueSpecs := PortCreateOptsWithValueSpec{
+		CreateOptsExt: portsbinding.CreateOptsExt{
+			CreateOptsBuilder: createOpts,
+			HostID:            portOpts.HostID,
+			VNICType:          portOpts.VNICType,
+			Profile:           nil,
+		},
+		ValueSpecs: portOpts.ValueSpecs, // this needs to be conditional
+	}
+	createPortWithValueSpecsResult := PortCreateOptsWithValueSpec{
+		CreateOptsExt: portsbinding.CreateOptsExt{},
+		ValueSpecs:    nil, // this needs to be conditional
+	}
+	_, _ = createPortWithValueSpecsResult.ToPortCreateMap()
+	port, err := ports.Create(s.networkClient, createPortWithValueSpecs).Extract()
+
 	if mc.ObserveRequest(err) != nil {
 		record.Warnf(eventObject, "FailedCreatePort", "Failed to create port %s: %v", portName, err)
 		return nil, err
 	}
 
 	record.Eventf(eventObject, "SuccessfulCreatePort", "Created port %s with id %s", port.Name, port.ID)
+
+	err = ports.Get(s.networkClient, port.ID).ExtractInto(&createPortWithValueSpecsResult)
+	fmt.Println("==port with ValueSpecs field result==>", createPortWithValueSpecsResult, "<====port with ValueSpecs field result====")
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve por %s: %v", port.Name, err)
+	}
 	return port, nil
 }
 

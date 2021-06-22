@@ -1301,6 +1301,13 @@ spec:
                               type: array
                             tenantId:
                               type: string
+                            valueSpecs:
+                              additionalProperties:
+                                type: string
+                              description: ValueSpecs. Allows you to add additional
+                                information in key/value format to a port. The information
+                                is added to the tags field of the port.
+                              type: object
                             vnicType:
                               description: The virtual network interface card (vNIC)
                                 type that is bound to the neutron port.
@@ -1730,6 +1737,13 @@ spec:
                               type: array
                             tenantId:
                               type: string
+                            valueSpecs:
+                              additionalProperties:
+                                type: string
+                              description: ValueSpecs. Allows you to add additional
+                                information in key/value format to a port. The information
+                                is added to the tags field of the port.
+                              type: object
                             vnicType:
                               description: The virtual network interface card (vNIC)
                                 type that is bound to the neutron port.
@@ -1994,6 +2008,13 @@ spec:
                         type: array
                       tenantId:
                         type: string
+                      valueSpecs:
+                        additionalProperties:
+                          type: string
+                        description: ValueSpecs. Allows you to add additional information
+                          in key/value format to a port. The information is added
+                          to the tags field of the port.
+                        type: object
                       vnicType:
                         description: The virtual network interface card (vNIC) type
                           that is bound to the neutron port.
@@ -2138,6 +2159,13 @@ spec:
                         type: array
                       tenantId:
                         type: string
+                      valueSpecs:
+                        additionalProperties:
+                          type: string
+                        description: ValueSpecs. Allows you to add additional information
+                          in key/value format to a port. The information is added
+                          to the tags field of the port.
+                        type: object
                       vnicType:
                         description: The virtual network interface card (vNIC) type
                           that is bound to the neutron port.
