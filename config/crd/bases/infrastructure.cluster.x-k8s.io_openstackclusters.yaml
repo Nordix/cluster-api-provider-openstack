@@ -1314,6 +1314,10 @@ spec:
                               type: array
                             tenantId:
                               type: string
+                            trunk:
+                              description: Enables and disables trunk at port level.
+                                If not provided, openStackMachine.Spec.Trunk is inherited.
+                              type: boolean
                             vnicType:
                               description: The virtual network interface card (vNIC)
                                 type that is bound to the neutron port.
@@ -1755,6 +1759,10 @@ spec:
                               type: array
                             tenantId:
                               type: string
+                            trunk:
+                              description: Enables and disables trunk at port level.
+                                If not provided, openStackMachine.Spec.Trunk is inherited.
+                              type: boolean
                             vnicType:
                               description: The virtual network interface card (vNIC)
                                 type that is bound to the neutron port.
@@ -2024,6 +2032,10 @@ spec:
                         type: array
                       tenantId:
                         type: string
+                      trunk:
+                        description: Enables and disables trunk at port level. If
+                          not provided, openStackMachine.Spec.Trunk is inherited.
+                        type: boolean
                       vnicType:
                         description: The virtual network interface card (vNIC) type
                           that is bound to the neutron port.
@@ -2205,6 +2217,10 @@ spec:
                         type: array
                       tenantId:
                         type: string
+                      trunk:
+                        description: Enables and disables trunk at port level. If
+                          not provided, openStackMachine.Spec.Trunk is inherited.
+                        type: boolean
                       vnicType:
                         description: The virtual network interface card (vNIC) type
                           that is bound to the neutron port.
