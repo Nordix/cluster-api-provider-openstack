@@ -567,6 +567,7 @@ func autoConvert_v1alpha4_Network_To_v1alpha3_Network(in *v1alpha4.Network, out 
 	// WARNING: in.PortOpts requires manual conversion: does not exist in peer-type
 	out.Router = (*Router)(unsafe.Pointer(in.Router))
 	out.APIServerLoadBalancer = (*LoadBalancer)(unsafe.Pointer(in.APIServerLoadBalancer))
+	// WARNING: in.PreserveOnDelete requires manual conversion: does not exist in peer-type
 	return nil
 }
 

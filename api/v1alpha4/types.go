@@ -130,6 +130,7 @@ type PortOpts struct {
 	ProjectID           string        `json:"projectId,omitempty"`
 	SecurityGroups      *[]string     `json:"securityGroups,omitempty"`
 	AllowedAddressPairs []AddressPair `json:"allowedAddressPairs,omitempty"`
+	Filter              *PortFilter   `json:"filter,omitempty"`
 
 	// The ID of the host where the port is allocated
 	HostID string `json:"hostId,omitempty"`
@@ -140,6 +141,24 @@ type PortOpts struct {
 	// DisablePortSecurity enables or disables the port security when set.
 	// When not set, it takes the value of the corresponding field at the network level.
 	DisablePortSecurity *bool `json:"disablePortSecurity,omitempty"`
+
+	PreserveOnDelete bool `json:"preserveOnDelete,omitempty"`
+}
+
+type PortFilter struct {
+	Name         string `json:"name,omitempty"`
+	Description  string `json:"description,omitempty"`
+	AdminStateUp *bool  `json:"adminStateUp,omitempty"`
+	TenantID     string `json:"tenantId,omitempty"`
+	ProjectID    string `json:"projectId,omitempty"`
+	MACAddress   string `json:"macAddress,omitempty"`
+	ID           string `json:"id,omitempty"`
+	DeviceID     string `json:"deviceId,omitempty"`
+	Marker       string `json:"marker,omitempty"`
+	Tags         string `json:"tags,omitempty"`
+	TagsAny      string `json:"tagsAny,omitempty"`
+	NotTags      string `json:"notTags,omitempty"`
+	NotTagsAny   string `json:"notTagsAny,omitempty"`
 }
 
 type FixedIP struct {
@@ -196,6 +215,8 @@ type Network struct {
 	// Be careful when using APIServerLoadBalancer, because this field is optional and therefore not
 	// set in all cases
 	APIServerLoadBalancer *LoadBalancer `json:"apiServerLoadBalancer,omitempty"`
+
+	PreserveOnDelete bool `json:"preserveOnDelete,omitempty"`
 }
 
 // Subnet represents basic information about the associated OpenStack Neutron Subnet.
