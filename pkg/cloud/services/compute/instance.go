@@ -63,6 +63,8 @@ const (
 	retryIntervalPortDelete = 5 * time.Second
 
 	timeoutInstanceDelete = 5 * time.Minute
+
+	preserveOnDeleteTag = "capo:preserve-on-delete"
 )
 
 func (s *Service) CreateInstance(openStackCluster *infrav1.OpenStackCluster, machine *clusterv1.Machine, openStackMachine *infrav1.OpenStackMachine, clusterName string, userData string) (instance *infrav1.Instance, err error) {
@@ -155,34 +157,40 @@ func (s *Service) constructNetworks(openStackCluster *infrav1.OpenStackCluster, 
 		// No Trunk field specified for the port, inherits openStackMachine.Spec.Trunk.
 		if pOpts.Trunk == nil {
 			pOpts.Trunk = &openStackMachine.Spec.Trunk
+			var tags []string
+			if port.PreserveOnDelete {
+				tags = append(tags, preserveOnDeleteTag)
+			}
+			if port.NetworkID != "" {
+				nets = append(nets, infrav1.Network{
+					ID:       port.NetworkID,
+					Subnet:   &infrav1.Subnet{},
+					PortOpts: pOpts,
+					Tags:     tags,
+				})
+			} else {
+				nets = append(nets, infrav1.Network{
+					ID: openStackCluster.Status.Network.ID,
+					Subnet: &infrav1.Subnet{
+						ID: openStackCluster.Status.Network.Subnet.ID,
+					},
+					PortOpts: pOpts,
+					Tags:     tags,
+				})
+			}
 		}
-		if port.NetworkID != "" {
-			nets = append(nets, infrav1.Network{
-				ID:       port.NetworkID,
-				Subnet:   &infrav1.Subnet{},
-				PortOpts: pOpts,
-			})
-		} else {
-			nets = append(nets, infrav1.Network{
+		// no networks or ports found in the spec, so create a port on the cluster network
+		if len(nets) == 0 {
+			nets = []infrav1.Network{{
 				ID: openStackCluster.Status.Network.ID,
 				Subnet: &infrav1.Subnet{
 					ID: openStackCluster.Status.Network.Subnet.ID,
 				},
-				PortOpts: pOpts,
-			})
+				PortOpts: &infrav1.PortOpts{
+					Trunk: &openStackMachine.Spec.Trunk,
+				},
+			}}
 		}
-	}
-	// no networks or ports found in the spec, so create a port on the cluster network
-	if len(nets) == 0 {
-		nets = []infrav1.Network{{
-			ID: openStackCluster.Status.Network.ID,
-			Subnet: &infrav1.Subnet{
-				ID: openStackCluster.Status.Network.Subnet.ID,
-			},
-			PortOpts: &infrav1.PortOpts{
-				Trunk: &openStackMachine.Spec.Trunk,
-			},
-		}}
 	}
 	return &nets, nil
 }
@@ -203,6 +211,17 @@ func (s *Service) createInstance(eventObject runtime.Object, clusterName string,
 		port, err := s.getOrCreatePort(eventObject, clusterName, portName, network, instance.SecurityGroups, iTags)
 		if err != nil {
 			return nil, err
+		}
+
+		if instance.Trunk {
+			trunk, err := s.getOrCreateTrunk(eventObject, clusterName, instance.Name, port.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			if err = s.replaceAllAttributesTags(eventObject, "trunks", trunk.ID, instance.Tags); err != nil {
+				return nil, err
+			}
 		}
 
 		for _, fip := range port.FixedIPs {
@@ -285,6 +304,33 @@ func (s *Service) createInstance(eventObject runtime.Object, clusterName string,
 
 	record.Eventf(eventObject, "SuccessfulCreateServer", "Created server %s with id %s", createdInstance.Name, createdInstance.ID)
 	return createdInstance, nil
+}
+
+func constructPortFilter(portOpts *infrav1.PortOpts, portName string, netID string) ports.ListOptsBuilder {
+	if portOpts == nil || portOpts.Filter == nil {
+		return ports.ListOpts{
+			Name:      portName,
+			NetworkID: netID,
+			Status:    "DOWN",
+		}
+	}
+	filter := ports.ListOpts{
+		NetworkID:    netID,
+		Status:       "DOWN",
+		Name:         portOpts.Filter.Name,
+		Description:  portOpts.Filter.Description,
+		AdminStateUp: portOpts.Filter.AdminStateUp,
+		TenantID:     portOpts.Filter.TenantID,
+		ProjectID:    portOpts.Filter.ProjectID,
+		MACAddress:   portOpts.Filter.MACAddress,
+		ID:           portOpts.Filter.ID,
+		DeviceID:     portOpts.Filter.DeviceID,
+		Marker:       portOpts.Filter.Marker,
+		Tags:         portOpts.Filter.Tags,
+		TagsAny:      portOpts.Filter.TagsAny,
+	}
+
+	return filter
 }
 
 // getPortName appends a suffix to an instance name in order to try and get a unique name per port.
@@ -424,11 +470,9 @@ func (s *Service) getServerNetworks(networkParams []infrav1.NetworkParam) ([]inf
 }
 
 func (s *Service) getOrCreatePort(eventObject runtime.Object, clusterName string, portName string, net infrav1.Network, instanceSecurityGroups *[]string, tags []string) (*ports.Port, error) {
+	portFilter := constructPortFilter(net.PortOpts, portName, net.ID)
 	mc := metrics.NewMetricPrometheusContext("port", "list")
-	allPages, err := ports.List(s.networkClient, ports.ListOpts{
-		Name:      portName,
-		NetworkID: net.ID,
-	}).AllPages()
+	allPages, err := ports.List(s.networkClient, portFilter).AllPages()
 	if mc.ObserveRequest(err) != nil {
 		return nil, fmt.Errorf("searching for existing port for server: %v", err)
 	}
@@ -439,10 +483,6 @@ func (s *Service) getOrCreatePort(eventObject runtime.Object, clusterName string
 
 	if len(existingPorts) == 1 {
 		return &existingPorts[0], nil
-	}
-
-	if len(existingPorts) > 1 {
-		return nil, fmt.Errorf("multiple ports found with name \"%s\"", portName)
 	}
 
 	// no port found, so create the port
@@ -524,8 +564,8 @@ func (s *Service) getOrCreatePort(eventObject runtime.Object, clusterName string
 		record.Warnf(eventObject, "FailedCreatePort", "Failed to create port %s: %v", portName, err)
 		return nil, err
 	}
-
 	record.Eventf(eventObject, "SuccessfulCreatePort", "Created port %s with id %s", port.Name, port.ID)
+
 	if portOpts.Trunk != nil && *portOpts.Trunk {
 		trunkDescription := names.GetDescription(clusterName)
 		trunk, err := s.getOrCreateTrunk(eventObject, trunkDescription, port.Name, port.ID)
@@ -533,12 +573,16 @@ func (s *Service) getOrCreatePort(eventObject runtime.Object, clusterName string
 			record.Warnf(eventObject, "FailedCreateTrunk", "Failed to create trunk for port %s: %v", portName, err)
 			return nil, err
 		}
-		if err = s.replaceAllAttributesTags(eventObject, trunk.ID, tags); err != nil {
+		if err = s.replaceAllAttributesTags(eventObject, "trunks", trunk.ID, tags); err != nil {
 			record.Warnf(eventObject, "FailedReplaceTags", "Failed to replace trunk tags %s: %v", portName, err)
-			return nil, err
 		}
 	}
 
+	if len(net.Tags) > 0 {
+		if err = s.replaceAllAttributesTags(eventObject, "ports", port.ID, net.Tags); err != nil {
+			return nil, err
+		}
+	}
 	return port, nil
 }
 
@@ -577,17 +621,17 @@ func (s *Service) getOrCreateTrunk(eventObject runtime.Object, description, trun
 	return trunk, nil
 }
 
-func (s *Service) replaceAllAttributesTags(eventObject runtime.Object, trunkID string, tags []string) error {
-	mc := metrics.NewMetricPrometheusContext("trunk", "update")
-	_, err := attributestags.ReplaceAll(s.networkClient, "trunks", trunkID, attributestags.ReplaceAllOpts{
+func (s *Service) replaceAllAttributesTags(eventObject runtime.Object, resourceType string, id string, tags []string) error {
+	mc := metrics.NewMetricPrometheusContext("tags", "update")
+	_, err := attributestags.ReplaceAll(s.networkClient, resourceType, id, attributestags.ReplaceAllOpts{
 		Tags: tags,
 	}).Extract()
 	if mc.ObserveRequest(err) != nil {
-		record.Warnf(eventObject, "FailedReplaceAllAttributesTags", "Failed to replace all attributestags, trunk %s: %v", trunkID, err)
+		record.Warnf(eventObject, "FailedReplaceAllAttributesTags", "Failed to replace all attributestags, %s %s: %v", resourceType, id, err)
 		return err
 	}
 
-	record.Eventf(eventObject, "SuccessfulReplaceAllAttributeTags", "Replaced all attributestags %s with tags %s", trunkID, tags)
+	record.Eventf(eventObject, "SuccessfulReplaceAllAttributeTags", "Replaced all attributestags %s with tags %s", resourceType, id, tags)
 	return nil
 }
 
@@ -703,6 +747,12 @@ func (s *Service) deletePort(eventObject runtime.Object, portID string) error {
 	}
 	if port == nil {
 		return nil
+	}
+
+	for _, tag := range port.Tags {
+		if tag == preserveOnDeleteTag {
+			return nil
+		}
 	}
 
 	err = util.PollImmediate(retryIntervalPortDelete, timeoutPortDelete, func() (bool, error) {

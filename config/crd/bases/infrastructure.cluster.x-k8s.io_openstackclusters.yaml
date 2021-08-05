@@ -1277,6 +1277,35 @@ spec:
                                 the value of the corresponding field at the network
                                 level.
                               type: boolean
+                            filter:
+                              properties:
+                                adminStateUp:
+                                  type: boolean
+                                description:
+                                  type: string
+                                deviceId:
+                                  type: string
+                                id:
+                                  type: string
+                                macAddress:
+                                  type: string
+                                marker:
+                                  type: string
+                                name:
+                                  type: string
+                                notTags:
+                                  type: string
+                                notTagsAny:
+                                  type: string
+                                projectId:
+                                  type: string
+                                tags:
+                                  type: string
+                                tagsAny:
+                                  type: string
+                                tenantId:
+                                  type: string
+                              type: object
                             fixedIPs:
                               description: Specify pairs of subnet and/or IP address.
                                 These should be subnets of the network with the given
@@ -1306,6 +1335,8 @@ spec:
                                 create the port. If unspecified, create the port on
                                 the default cluster network.
                               type: string
+                            preserveOnDelete:
+                              type: boolean
                             projectId:
                               type: string
                             securityGroups:
@@ -1722,6 +1753,35 @@ spec:
                                 the value of the corresponding field at the network
                                 level.
                               type: boolean
+                            filter:
+                              properties:
+                                adminStateUp:
+                                  type: boolean
+                                description:
+                                  type: string
+                                deviceId:
+                                  type: string
+                                id:
+                                  type: string
+                                macAddress:
+                                  type: string
+                                marker:
+                                  type: string
+                                name:
+                                  type: string
+                                notTags:
+                                  type: string
+                                notTagsAny:
+                                  type: string
+                                projectId:
+                                  type: string
+                                tags:
+                                  type: string
+                                tagsAny:
+                                  type: string
+                                tenantId:
+                                  type: string
+                              type: object
                             fixedIPs:
                               description: Specify pairs of subnet and/or IP address.
                                 These should be subnets of the network with the given
@@ -1751,6 +1811,8 @@ spec:
                                 create the port. If unspecified, create the port on
                                 the default cluster network.
                               type: string
+                            preserveOnDelete:
+                              type: boolean
                             projectId:
                               type: string
                             securityGroups:
@@ -1768,6 +1830,8 @@ spec:
                                 type that is bound to the neutron port.
                               type: string
                           type: object
+                        preserveOnDelete:
+                          type: boolean
                         router:
                           description: Router represents basic information about the
                             associated OpenStack Neutron Router.
@@ -1996,6 +2060,35 @@ spec:
                           security when set. When not set, it takes the value of the
                           corresponding field at the network level.
                         type: boolean
+                      filter:
+                        properties:
+                          adminStateUp:
+                            type: boolean
+                          description:
+                            type: string
+                          deviceId:
+                            type: string
+                          id:
+                            type: string
+                          macAddress:
+                            type: string
+                          marker:
+                            type: string
+                          name:
+                            type: string
+                          notTags:
+                            type: string
+                          notTagsAny:
+                            type: string
+                          projectId:
+                            type: string
+                          tags:
+                            type: string
+                          tagsAny:
+                            type: string
+                          tenantId:
+                            type: string
+                        type: object
                       fixedIPs:
                         description: Specify pairs of subnet and/or IP address. These
                           should be subnets of the network with the given NetworkID.
@@ -2024,6 +2117,8 @@ spec:
                           the port. If unspecified, create the port on the default
                           cluster network.
                         type: string
+                      preserveOnDelete:
+                        type: boolean
                       projectId:
                         type: string
                       securityGroups:
@@ -2041,6 +2136,8 @@ spec:
                           that is bound to the neutron port.
                         type: string
                     type: object
+                  preserveOnDelete:
+                    type: boolean
                   router:
                     description: Router represents basic information about the associated
                       OpenStack Neutron Router.
@@ -2181,6 +2278,35 @@ spec:
                           security when set. When not set, it takes the value of the
                           corresponding field at the network level.
                         type: boolean
+                      filter:
+                        properties:
+                          adminStateUp:
+                            type: boolean
+                          description:
+                            type: string
+                          deviceId:
+                            type: string
+                          id:
+                            type: string
+                          macAddress:
+                            type: string
+                          marker:
+                            type: string
+                          name:
+                            type: string
+                          notTags:
+                            type: string
+                          notTagsAny:
+                            type: string
+                          projectId:
+                            type: string
+                          tags:
+                            type: string
+                          tagsAny:
+                            type: string
+                          tenantId:
+                            type: string
+                        type: object
                       fixedIPs:
                         description: Specify pairs of subnet and/or IP address. These
                           should be subnets of the network with the given NetworkID.
@@ -2209,6 +2335,8 @@ spec:
                           the port. If unspecified, create the port on the default
                           cluster network.
                         type: string
+                      preserveOnDelete:
+                        type: boolean
                       projectId:
                         type: string
                       securityGroups:
@@ -2226,6 +2354,8 @@ spec:
                           that is bound to the neutron port.
                         type: string
                     type: object
+                  preserveOnDelete:
+                    type: boolean
                   router:
                     description: Router represents basic information about the associated
                       OpenStack Neutron Router.
