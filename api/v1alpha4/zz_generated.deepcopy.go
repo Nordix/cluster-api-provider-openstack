@@ -812,6 +812,11 @@ func (in *PortOpts) DeepCopyInto(out *PortOpts) {
 		*out = make([]AddressPair, len(*in))
 		copy(*out, *in)
 	}
+	if in.Trunk != nil {
+		in, out := &in.Trunk, &out.Trunk
+		*out = new(bool)
+		**out = **in
+	}
 	if in.DisablePortSecurity != nil {
 		in, out := &in.DisablePortSecurity, &out.DisablePortSecurity
 		*out = new(bool)
