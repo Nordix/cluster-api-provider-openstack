@@ -471,7 +471,7 @@ func (s *Service) getOrCreatePort(eventObject runtime.Object, clusterName string
 		return nil, fmt.Errorf("searching for existing port for server: %v", err)
 	}
 
-	if len(existingPorts) == 1 {
+	if len(existingPorts) >= 1 {
 		return &existingPorts[0], nil
 	}
 
@@ -481,6 +481,7 @@ func (s *Service) getOrCreatePort(eventObject runtime.Object, clusterName string
 		portOpts = &infrav1.PortOpts{}
 	}
 
+	// TODO: have the filter fields act as defaults??
 	description := portOpts.Description
 	if description == "" {
 		description = names.GetDescription(clusterName)
