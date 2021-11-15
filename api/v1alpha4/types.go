@@ -123,6 +123,8 @@ type SubnetFilter struct {
 type PortOpts struct {
 	// ID of the OpenStack network on which to create the port. If unspecified, create the port on the default cluster network.
 	NetworkID string `json:"networkId,omitempty"`
+	// Ports that already exist in the environment matching this filter will be attached to the instance, instead of creating a new port
+	Filter *PortFilter `json:"filter,omitempty"`
 	// Used to make the name of the port unique. If unspecified, instead the 0-based index of the port in the list is used.
 	NameSuffix   string `json:"nameSuffix,omitempty"`
 	Description  string `json:"description,omitempty"`
@@ -152,9 +154,29 @@ type PortOpts struct {
 	// When not set, it takes the value of the corresponding field at the network level.
 	DisablePortSecurity *bool `json:"disablePortSecurity,omitempty"`
 
+	// By default, when an instance is deleted, this port will be deleted as well.
+	// Set this to true to skip the step of deleting the port after detatching from the instance.
+	SkipCleanup bool `json:"skipCleanup,omitempty"`
+
 	// Tags applied to the port (and corresponding trunk, if a trunk is configured.)
 	// These tags are applied in addition to the instance's tags, which will also be applied to the port.
 	Tags []string `json:"tags,omitempty"`
+}
+
+type PortFilter struct {
+	Name         string `json:"name,omitempty"`
+	Description  string `json:"description,omitempty"`
+	AdminStateUp *bool  `json:"adminStateUp,omitempty"`
+	TenantID     string `json:"tenantId,omitempty"`
+	ProjectID    string `json:"projectId,omitempty"`
+	MACAddress   string `json:"macAddress,omitempty"`
+	ID           string `json:"id,omitempty"`
+	DeviceID     string `json:"deviceId,omitempty"`
+	Marker       string `json:"marker,omitempty"`
+	Tags         string `json:"tags,omitempty"`
+	TagsAny      string `json:"tagsAny,omitempty"`
+	NotTags      string `json:"notTags,omitempty"`
+	NotTagsAny   string `json:"notTagsAny,omitempty"`
 }
 
 type FixedIP struct {

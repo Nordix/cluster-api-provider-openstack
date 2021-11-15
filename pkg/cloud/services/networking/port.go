@@ -35,6 +35,7 @@ import (
 const (
 	timeoutPortDelete       = 3 * time.Minute
 	retryIntervalPortDelete = 5 * time.Second
+	skipCleanupTag          = "sigs.k8s.io/cluster-api-provider-openstack/skip-cleanup"
 )
 
 func (s *Service) getPort(portID string) (port *ports.Port, err error) {
@@ -67,20 +68,14 @@ func (s *Service) GetPortFromInstanceIP(instanceID string, ip string) ([]ports.P
 }
 
 func (s *Service) GetOrCreatePort(eventObject runtime.Object, clusterName string, portName string, net infrav1.Network, instanceSecurityGroups *[]string, instanceTags []string) (*ports.Port, error) {
-	existingPorts, err := s.client.ListPort(ports.ListOpts{
-		Name:      portName,
-		NetworkID: net.ID,
-	})
+	portFilter := portFilter(net.PortOpts, portName, net.ID)
+	existingPorts, err := s.client.ListPort(portFilter)
 	if err != nil {
 		return nil, fmt.Errorf("searching for existing port for server: %v", err)
 	}
 
-	if len(existingPorts) == 1 {
+	if len(existingPorts) >= 1 {
 		return &existingPorts[0], nil
-	}
-
-	if len(existingPorts) > 1 {
-		return nil, fmt.Errorf("multiple ports found with name \"%s\"", portName)
 	}
 
 	// no port found, so create the port
@@ -165,6 +160,10 @@ func (s *Service) GetOrCreatePort(eventObject runtime.Object, clusterName string
 	var tags []string
 	tags = append(tags, instanceTags...)
 	tags = append(tags, portOpts.Tags...)
+	if portOpts.SkipCleanup {
+		tags = append(tags, skipCleanupTag)
+	}
+
 	if len(tags) > 0 {
 		if err = s.replaceAllAttributesTags(eventObject, portResource, port.ID, tags); err != nil {
 			record.Warnf(eventObject, "FailedReplaceTags", "Failed to replace port tags %s: %v", portName, err)
@@ -185,6 +184,35 @@ func (s *Service) GetOrCreatePort(eventObject runtime.Object, clusterName string
 	}
 
 	return port, nil
+}
+
+// portFilter returns a ListOptsBuilder matching the filter in portOpts.
+// If no such filter is specified, portFilter returns a default filter based on the given port name and network ID.
+func portFilter(portOpts *infrav1.PortOpts, portName string, netID string) ports.ListOptsBuilder {
+	if portOpts == nil || portOpts.Filter == nil {
+		return ports.ListOpts{
+			Name:      portName,
+			NetworkID: netID,
+			Status:    "DOWN",
+		}
+	}
+	filter := ports.ListOpts{
+		NetworkID:    netID,
+		Status:       "DOWN",
+		Name:         portOpts.Filter.Name,
+		Description:  portOpts.Filter.Description,
+		AdminStateUp: portOpts.Filter.AdminStateUp,
+		TenantID:     portOpts.Filter.TenantID,
+		ProjectID:    portOpts.Filter.ProjectID,
+		MACAddress:   portOpts.Filter.MACAddress,
+		ID:           portOpts.Filter.ID,
+		DeviceID:     portOpts.Filter.DeviceID,
+		Marker:       portOpts.Filter.Marker,
+		Tags:         portOpts.Filter.Tags,
+		TagsAny:      portOpts.Filter.TagsAny,
+	}
+
+	return filter
 }
 
 func getPortProfile(p map[string]string) map[string]interface{} {
@@ -211,6 +239,12 @@ func (s *Service) DeletePort(eventObject runtime.Object, portID string) error {
 		return nil
 	}
 
+	for _, tag := range port.Tags {
+		if tag == skipCleanupTag {
+			return nil
+		}
+	}
+
 	err = util.PollImmediate(retryIntervalPortDelete, timeoutPortDelete, func() (bool, error) {
 		err := s.client.DeletePort(port.ID)
 		if err != nil {
@@ -232,6 +266,7 @@ func (s *Service) DeletePort(eventObject runtime.Object, portID string) error {
 	record.Eventf(eventObject, "SuccessfulDeletePort", "Deleted port %s with id %s", port.Name, port.ID)
 	return nil
 }
+
 
 func (s *Service) GarbageCollectErrorInstancesPort(eventObject runtime.Object, instanceName string) error {
 	portList, err := s.client.ListPort(ports.ListOpts{
