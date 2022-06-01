@@ -198,6 +198,15 @@ func Convert_v1alpha4_PortOpts_To_v1alpha5_PortOpts(in *PortOpts, out *infrav1.P
 	if in.NetworkID != "" {
 		out.Network = &infrav1.NetworkFilter{ID: in.NetworkID}
 	}
+	var v1alpha5securityGroups []infrav1.SecurityGroupParam
+	if in.SecurityGroups != nil {
+		for _, v1alpha4SecurityGroupUID := range *in.SecurityGroups {
+			if v1alpha4SecurityGroupUID != "" {
+				v1alpha5securityGroups = append(v1alpha5securityGroups, infrav1.SecurityGroupParam{UUID: v1alpha4SecurityGroupUID})
+			}
+		}
+		out.SecurityGroups = &v1alpha5securityGroups
+	}
 	return nil
 }
 
@@ -208,6 +217,15 @@ func Convert_v1alpha5_PortOpts_To_v1alpha4_PortOpts(in *infrav1.PortOpts, out *P
 	}
 	if in.Network != nil {
 		out.NetworkID = in.Network.ID
+	}
+	var v1alpha4securityGroups []string
+	if in.SecurityGroups != nil {
+		for _, v1alpha5SecurityGroups := range *in.SecurityGroups {
+			if v1alpha5SecurityGroups.UUID != "" {
+				v1alpha4securityGroups = append(v1alpha4securityGroups, v1alpha5SecurityGroups.UUID)
+			}
+		}
+		out.SecurityGroups = &v1alpha4securityGroups
 	}
 	return nil
 }

@@ -1443,7 +1443,7 @@ func autoConvert_v1alpha4_PortOpts_To_v1alpha5_PortOpts(in *PortOpts, out *v1alp
 	}
 	out.TenantID = in.TenantID
 	out.ProjectID = in.ProjectID
-	out.SecurityGroups = (*[]string)(unsafe.Pointer(in.SecurityGroups))
+	// WARNING: in.SecurityGroups requires manual conversion: inconvertible types (*[]string vs []sigs.k8s.io/cluster-api-provider-openstack/api/v1alpha5.SecurityGroupParam)
 	out.AllowedAddressPairs = *(*[]v1alpha5.AddressPair)(unsafe.Pointer(&in.AllowedAddressPairs))
 	out.Trunk = (*bool)(unsafe.Pointer(in.Trunk))
 	out.HostID = in.HostID
@@ -1473,8 +1473,7 @@ func autoConvert_v1alpha5_PortOpts_To_v1alpha4_PortOpts(in *v1alpha5.PortOpts, o
 	}
 	out.TenantID = in.TenantID
 	out.ProjectID = in.ProjectID
-	out.SecurityGroups = (*[]string)(unsafe.Pointer(in.SecurityGroups))
-	// WARNING: in.SecurityGroupFilters requires manual conversion: does not exist in peer-type
+	// WARNING: in.SecurityGroups requires manual conversion: inconvertible types ([]sigs.k8s.io/cluster-api-provider-openstack/api/v1alpha5.SecurityGroupParam vs *[]string)
 	out.AllowedAddressPairs = *(*[]AddressPair)(unsafe.Pointer(&in.AllowedAddressPairs))
 	out.Trunk = (*bool)(unsafe.Pointer(in.Trunk))
 	out.HostID = in.HostID

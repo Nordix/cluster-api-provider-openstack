@@ -2779,9 +2779,9 @@ spec:
                               type: object
                             projectId:
                               type: string
-                            securityGroupFilters:
-                              description: The names, uuids, filters or any combination
-                                these of the security groups to assign to the instance
+                            securityGroups:
+                              description: The names of the security groups to assign
+                                to the port
                               items:
                                 properties:
                                   filter:
@@ -2822,12 +2822,6 @@ spec:
                                     description: Security Group UID
                                     type: string
                                 type: object
-                              type: array
-                            securityGroups:
-                              description: The uuids of the security groups to assign
-                                to the instance
-                              items:
-                                type: string
                               type: array
                             tags:
                               description: Tags applied to the port (and corresponding
@@ -3298,9 +3292,9 @@ spec:
                               type: object
                             projectId:
                               type: string
-                            securityGroupFilters:
-                              description: The names, uuids, filters or any combination
-                                these of the security groups to assign to the instance
+                            securityGroups:
+                              description: The names of the security groups to assign
+                                to the port
                               items:
                                 properties:
                                   filter:
@@ -3341,12 +3335,6 @@ spec:
                                     description: Security Group UID
                                     type: string
                                 type: object
-                              type: array
-                            securityGroups:
-                              description: The uuids of the security groups to assign
-                                to the instance
-                              items:
-                                type: string
                               type: array
                             tags:
                               description: Tags applied to the port (and corresponding
@@ -3678,9 +3666,9 @@ spec:
                         type: object
                       projectId:
                         type: string
-                      securityGroupFilters:
-                        description: The names, uuids, filters or any combination
-                          these of the security groups to assign to the instance
+                      securityGroups:
+                        description: The names of the security groups to assign to
+                          the port
                         items:
                           properties:
                             filter:
@@ -3721,12 +3709,6 @@ spec:
                               description: Security Group UID
                               type: string
                           type: object
-                        type: array
-                      securityGroups:
-                        description: The uuids of the security groups to assign to
-                          the instance
-                        items:
-                          type: string
                         type: array
                       tags:
                         description: Tags applied to the port (and corresponding trunk,
@@ -3972,9 +3954,9 @@ spec:
                         type: object
                       projectId:
                         type: string
-                      securityGroupFilters:
-                        description: The names, uuids, filters or any combination
-                          these of the security groups to assign to the instance
+                      securityGroups:
+                        description: The names of the security groups to assign to
+                          the port
                         items:
                           properties:
                             filter:
@@ -4015,12 +3997,6 @@ spec:
                               description: Security Group UID
                               type: string
                           type: object
-                        type: array
-                      securityGroups:
-                        description: The uuids of the security groups to assign to
-                          the instance
-                        items:
-                          type: string
                         type: array
                       tags:
                         description: Tags applied to the port (and corresponding trunk,
