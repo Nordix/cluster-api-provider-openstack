@@ -1,0 +1,37 @@
+default_registry: gcr.iocluster-api-provider
+kind_cluster_name: kind
+# provider_repos:
+# - ../cluster-api-provider-openstack
+# - ../cluster-api-provider-metal3
+# - ../metal3-ipam
+enable_providers:
+- openstack
+# - metal3
+# - metal3-ipam
+# - docker
+- in-memory
+- kubeadm-bootstrap
+- kubeadm-control-plane
+
+# extra_args:
+# - openstack
+# - - --v=6
+# kubeadm-bootstrap:
+# - --logging-format=json
+
+# deploy_observability:
+# - prometheus
+# - grafana
+# - kube-state-metrics
+
+# debug:
+#   core:
+#     profiler_port: 40000
+#   kubeadm-control-plane:
+#     profiler_port: 40001
+#   kubeadm-bootstrap:
+#     profiler_port: 40002
+
+# template_dirs:
+#   openstack:
+#     - ../cluster-api-provider-openstack/templates
