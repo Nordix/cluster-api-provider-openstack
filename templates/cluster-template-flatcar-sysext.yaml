@@ -29,7 +29,8 @@ spec:
                   mode: 0644
                   contents:
                     remote:
-                      url: https://extensions.flatcar.org/extensions/kubernetes/kubernetes-${KUBERNETES_VERSION%.*}.conf
+                      url: https://github.com/flatcar/sysext-bakery/releases/download/kubernetes-${KUBERNETES_VERSION}/kubernetes-${KUBERNETES_VERSION%.*}.conf
+                      # url: https://extensions.flatcar.org/extensions/kubernetes/kubernetes-${KUBERNETES_VERSION%.*}.conf
                 - path: /etc/sysupdate.d/noop.conf
                   mode: 0644
                   contents:
@@ -38,7 +39,8 @@ spec:
                 - path: /opt/extensions/kubernetes/kubernetes-${KUBERNETES_VERSION}-x86-64.raw
                   contents:
                     remote:
-                      url: https://extensions.flatcar.org/extensions/kubernetes/kubernetes-${KUBERNETES_VERSION}-x86-64.raw
+                      url: https://github.com/flatcar/sysext-bakery/releases/download/kubernetes-${KUBERNETES_VERSION}/kubernetes-${KUBERNETES_VERSION}-x86-64.raw
+                      # url: https://extensions.flatcar.org/extensions/kubernetes/kubernetes-${KUBERNETES_VERSION}-x86-64.raw
             systemd:
               units:
                 - name: systemd-sysupdate.service
@@ -154,7 +156,8 @@ spec:
                 mode: 0644
                 contents:
                   remote:
-                    url: https://extensions.flatcar.org/extensions/kubernetes/kubernetes-${KUBERNETES_VERSION%.*}.conf
+                    url: https://github.com/flatcar/sysext-bakery/releases/download/kubernetes-${KUBERNETES_VERSION}/kubernetes-${KUBERNETES_VERSION%.*}.conf
+                    # url: https://extensions.flatcar.org/extensions/kubernetes/kubernetes-${KUBERNETES_VERSION%.*}.conf
               - path: /etc/sysupdate.d/noop.conf
                 mode: 0644
                 contents:
@@ -163,7 +166,8 @@ spec:
               - path: /opt/extensions/kubernetes/kubernetes-${KUBERNETES_VERSION}-x86-64.raw
                 contents:
                   remote:
-                    url: https://extensions.flatcar.org/extensions/kubernetes-${KUBERNETES_VERSION}-x86-64.raw
+                    url: https://github.com/flatcar/sysext-bakery/releases/download/kubernetes-${KUBERNETES_VERSION}/kubernetes-${KUBERNETES_VERSION}-x86-64.raw
+                    # url: https://extensions.flatcar.org/extensions/kubernetes-${KUBERNETES_VERSION}-x86-64.raw
           systemd:
             units:
               - name: systemd-sysupdate.service

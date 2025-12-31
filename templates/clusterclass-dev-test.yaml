@@ -284,7 +284,8 @@ spec:
                         mode: 0644
                         contents:
                           remote:
-                            url: https://extensions.flatcar.org/extensions/kubernetes/kubernetes-{{ $minor }}.conf
+                            url: https://github.com/flatcar/sysext-bakery/releases/download/kubernetes-{{ .builtin.controlPlane.version }}/kubernetes-{{ $minor }}.conf
+                            # url: https://extensions.flatcar.org/extensions/kubernetes/kubernetes-{{ $minor }}.conf
                       - path: /etc/sysupdate.d/noop.conf
                         mode: 0644
                         contents:
@@ -293,7 +294,8 @@ spec:
                       - path: /opt/extensions/kubernetes/kubernetes-{{ .builtin.controlPlane.version }}-x86-64.raw
                         contents:
                           remote:
-                            url: https://extensions.flatcar.org/extensions/kubernetes-{{ .builtin.controlPlane.version }}-x86-64.raw
+                            url: https://github.com/flatcar/sysext-bakery/releases/download/kubernetes-{{ .builtin.controlPlane.version }}/kubernetes-{{ .builtin.controlPlane.version }}-x86-64.raw
+                            # url: https://extensions.flatcar.org/extensions/kubernetes-{{ .builtin.controlPlane.version }}-x86-64.raw
                   systemd:
                     units:
                       - name: systemd-sysupdate.service
@@ -368,7 +370,8 @@ spec:
                         mode: 0644
                         contents:
                           remote:
-                            url: https://extensions.flatcar.org/extensions/kubernetes/kubernetes-{{ $minor }}.conf
+                            url: https://github.com/flatcar/sysext-bakery/releases/download/kubernetes-{{ .builtin.machineDeployment.version }}/kubernetes-{{ $minor }}.conf
+                            # url: https://extensions.flatcar.org/extensions/kubernetes/kubernetes-{{ $minor }}.conf
                       - path: /etc/sysupdate.d/noop.conf
                         mode: 0644
                         contents:
@@ -377,7 +380,8 @@ spec:
                       - path: /opt/extensions/kubernetes/kubernetes-{{ .builtin.machineDeployment.version }}-x86-64.raw
                         contents:
                           remote:
-                            url: https://extensions.flatcar.org/extensions/kubernetes-{{ .builtin.machineDeployment.version }}-x86-64.raw
+                            url: https://github.com/flatcar/sysext-bakery/releases/download/kubernetes-{{ .builtin.machineDeployment.version }}/kubernetes-{{ .builtin.machineDeployment.version }}-x86-64.raw
+                            # url: https://extensions.flatcar.org/extensions/kubernetes-{{ .builtin.machineDeployment.version }}-x86-64.raw
                   systemd:
                     units:
                       - name: systemd-sysupdate.service
